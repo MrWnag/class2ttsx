@@ -179,6 +179,40 @@ func (this*UserController)HandleLogin(){
 		this.Ctx.SetCookie("userName",userName,-1)
 	}
 
+	this.SetSession("userName",userName)
+
 	//返回数据
 	this.Redirect("/",302)
+}
+
+
+//退出登录
+func(this*UserController)Logout(){
+	//删除session
+	this.DelSession("userName")
+	//跳转页面
+	this.Redirect("/",302)
+}
+
+//展示用户中心信息页
+func(this*UserController)ShowUserCenterInfo(){
+
+	//获取用户名
+	userName := this.GetSession("userName")
+	this.Data["userName"] = userName.(string)
+
+	this.Layout = "layout.html"
+	this.TplName = "user_center_info.html"
+}
+
+//展示用户中心订单页
+func(this*UserController)ShowUserCenterOrder(){
+	this.Layout = "layout.html"
+	this.TplName = "user_center_order.html"
+}
+
+//展示用户中心地址页
+func(this*UserController)ShowUserCenterSite(){
+	this.Layout = "layout.html"
+	this.TplName = "user_center_site.html"
 }
