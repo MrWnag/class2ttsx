@@ -118,5 +118,67 @@ func(this*UserController)ActiveUser(){
 
 //展示登录页面
 func (this*UserController)ShowLogin(){
+
+	userName :=this.Ctx.GetCookie("userName")
+	if userName != ""{
+		this.Data["userName"] = userName
+		this.Data["checked"] = "checked"
+	}else {
+		this.Data["userName"] = ""
+		this.Data["checked"] = ""
+	}
+
 	this.TplName = "login.html"
+}
+
+//处理登录业务
+func (this*UserController)HandleLogin(){
+	//获取数据
+	userName := this.GetString("username")
+	pwd := this.GetString("pwd")
+	//校验数据
+	if userName == "" || pwd == "" {
+		beego.Error("输入数据不完整，请重新输入！")
+		this.TplName = "login.html"
+		return
+	}
+
+	//处理数据
+	//查询
+	o := orm.NewOrm()
+	//获取查询对象
+	var user models.User
+	//给查询条件赋值
+	user.UserName = userName
+	//查询
+	err := o.Read(&user,"UserName")
+	if err != nil{
+		beego.Error("用户名不存在，请重新输入！")
+		this.TplName = "login.html"
+		return
+	}
+
+	if user.Pwd != pwd{
+		beego.Error("用户名密码不匹配，请重新输入！")
+		this.TplName = "login.html"
+		return
+	}
+
+	if user.Active == 0 {
+		beego.Error("用户名未激活，请先去目标邮箱激活！")
+		this.TplName = "login.html"
+		return
+	}
+
+	//利用cookie实现记住用户名
+	remember :=this.GetString("remember")
+	beego.Info("remember = ",remember)
+	if remember == "on"{
+		this.Ctx.SetCookie("userName",userName,3600)
+	}else {
+		this.Ctx.SetCookie("userName",userName,-1)
+	}
+
+	//返回数据
+	this.Redirect("/",302)
 }
